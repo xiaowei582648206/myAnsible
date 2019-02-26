@@ -1,0 +1,55 @@
+---
+- name: install ntp server
+  yum: name=ntp state=present
+  when: " ntpServer_enable == 'true'"
+
+- name: modify the configuration of ntp server
+  template: src=ntp.conf.j2  dest=/etc/ntp.conf
+  when:  " ntpServer_enable == 'true'"
+
+- name: start the ntpd service
+  service: name=ntpd state=started enabled=yes
+  when:  " ntpServer_enable  == 'true'"
+
+- name: sychronize the ntp client and server every hour 
+  cron: name="sychronize time" job="/usr/sbin/ntpdate {{ ntpServer_hostname }}" minute=0 hour=* day=* month=* weekday=* state=present
+  register: syc_result
+  when: " ntpClient_enable  == 'true'"
+
+- name: print sychronize result
+  debug: msg="the result is , {{ syc_result }}"
+
+- name: install mysql-server 
+  yum: name=mysql-community-server state=present
+  when: " ntpServer_enable  == 'true'"
+
+- name: start mysql-server service
+  service: name=mysqld state=started enabled=yes
+  when: " ntpServer_enable  == 'true'"
+
+- name: create directory for cloudera manager
+  file: path={{ cm_home}}  state=directory 
+
+- name: unarchive cloudera manager tar.gz 
+  unarchive: src={{ cm_package_name }} dest={{ cm_home }}  copy=yes 
+
+- name: modify agent configuration file
+  template: src=config.ini.j2  dest={{ cm_home }}/cm-5.9.0/etc/cloudera-scm-agent/config.ini
+  when: " cm_agent == 'true'"
+
+- name: copy the JDBC into cloudera manager lib dir
+  copy: src={{ jdbc_package_name }}  dest={{ cm_home }}/cm-5.9.0/share/cmf/lib 
+  
+- name: initial the msyql database
+  shell: " chmod 777 {{ cm_home }}/cm-5.9.0/share/cmf/schema/scm_*.sh &&  {{ cm_home }}/cm-5.9.0/share/cmf/schema/scm_prepare_database.sh  -h{{ mysql_server_hostname }} -uroot -p123 --scm-host {{ cm_server_hostname }} mysql scm scm scm "
+  when: " cm_server == 'true'"
+
+- name: start the cloudera-manager server
+  shell: "{{cm_home}}/cm-5.9.0/etc/init.d/cloudera-scm-server start"
+  when: " cm_server == 'true'"
+
+- name: start the cloudera-manager client
+  shell: "{{cm_home}}/cm-5.9.0/etc/init.d/cloudera-scm-agent start"
+  when: " cm_agent == 'true'"
+
+

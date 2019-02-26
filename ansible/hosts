@@ -1,0 +1,61 @@
+# This is the default ansible 'hosts' file.
+#
+# It should live in /etc/ansible/hosts
+#
+#   - Comments begin with the '#' character
+#   - Blank lines are ignored
+#   - Groups of hosts are delimited by [header] elements
+#   - You can enter hostnames or ip addresses
+#   - A hostname/ip can be a member of multiple groups
+
+# Ex 1: Ungrouped hosts, specify before any group headers.
+
+## green.example.com
+## blue.example.com
+## 192.168.100.1
+## 192.168.100.10
+
+# Ex 2: A collection of hosts belonging to the 'webservers' group
+
+## [webservers]
+## alpha.example.org
+## beta.example.org
+## 192.168.1.100
+## 192.168.1.110
+
+# If you have multiple hosts following a pattern you can specify
+# them like this:
+
+## www[001:006].example.com
+
+# Ex 3: A collection of database servers in the 'dbservers' group
+
+## [dbservers]
+## 
+## db01.intranet.mydomain.net
+## db02.intranet.mydomain.net
+## 10.25.1.56
+## 10.25.1.57
+
+# Here's another example of host ranges, this time there are no
+# leading 0s:
+
+## db-[99:101]-node.example.com
+
+
+
+[hadoop_cluster]
+master myid_value=1  namenode_active=true  namenode_standby=false rm_active=true  rm_standby=false 
+slave1 myid_value=2  namenode_active=false namenode_standby=true  rm_active=false rm_standby=true
+slave2 myid_value=3  namenode_active=false namenode_standby=false rm_active=false rm_standby=false
+
+
+[cloudera_manager_cluster]
+master  ntpServer_enable=true   ntpClient_enable=false  cm_server=true   cm_agent=true
+slave1  ntpServer_enable=false  ntpClient_enable=true   cm_server=false  cm_agent=true
+slave2  ntpServer_enable=false  ntpClient_enable=true   cm_server=false  cm_agent=true
+
+[spark_cluster]
+master  master_active=true 
+slave1  master_active=false
+slave2  master_active=false

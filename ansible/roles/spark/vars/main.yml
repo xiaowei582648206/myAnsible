@@ -1,0 +1,16 @@
+---
+spark_package_name: spark-1.6.0-bin-hadoop2.6.tgz
+unarchive_path: /usr/spark
+spark_version: spark-1.6.0-bin-hadoop2.6
+spark_home: /usr/spark/{{ spark_version }}
+
+
+worker1_hostname: master
+worker2_hostname: slave1
+worker3_hostname: slave2
+
+master_hostname: master
+
+java_home: /usr/java/jdk1.8.0_191
+hadoop_home: /usr/hadoop/hadoop-2.6.5
+hadoop_conf_dir: /usr/hadoop/hadoop-2.6.5/etc/hadoop

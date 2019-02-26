@@ -1,0 +1,20 @@
+---
+unarchive_path: /usr/hadoop
+hadoop_package_name: hadoop-2.6.5.tar.gz
+hadoop_version: hadoop-2.6.5
+hadoop_home: /usr/hadoop/{{ hadoop_version }}
+
+zk_node1: master:2181
+zk_node2: slave1:2181
+zk_node3: slave2:2181
+
+namenode1_hostname: master
+namenode2_hostname: slave1
+
+datanode1_hostname: slave1
+datanode2_hostname: slave2
+
+resourcemanager1_hostname: master
+resourcemanager2_hostname: slave1
+
+java_home: /usr/java/jdk1.8.0_191

@@ -1,0 +1,24 @@
+---
+- name: create directory for install jdk
+  file: path=/usr/java state=directory owner=hadoop group=hadoop mode=0766
+
+- name: copy the jdk package and unarchived
+  unarchive: src={{ jdk_package_name }}  dest=/usr/java/ copy=yes 
+
+- name: create the environment variable
+  lineinfile: path=/etc/profile insertafter={{ item.position }} line={{ item.value }}
+  with_items:
+        - {position: EOF , value: "\n" }
+        - {position: EOF, value: "export JAVA_HOME=/usr/java/{{java_version}}"}
+        - {position: EOF, value: "export PATH=$JAVA_HOME/bin:$PATH"}
+        - {position: EOF,value: "export CLASSPATH=$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar"}
+
+- name: source the profile
+  shell: source /etc/profile
+
+- name: verify jdk is successful or not
+  shell: source /etc/profile &&  java -version
+  register: java_result
+
+- name: print java version
+  debug: msg=" the cmd is {{ java_result.cmd }} ; the stdout is  {{ java_result.stdout_lines }} ; the stderr is {{ java_result.stderr_lines }}"

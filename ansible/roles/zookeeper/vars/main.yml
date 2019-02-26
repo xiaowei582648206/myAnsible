@@ -1,0 +1,11 @@
+---
+unarchive_path: /usr/zookeeper
+zookeeper_package_name: zookeeper-3.4.5.tar.gz
+zookeeper_version: zookeeper-3.4.5
+zookeeper_home: /usr/zookeeper/{{ zookeeper_version }}
+data_dir: "{{ zookeeper_home }}/data"
+log_dir: "{{ zookeeper_home }}/log"
+myid_path: "{{ zookeeper_home }}/data/myid"
+server1_hostname: master
+server2_hostname: slave1
+server3_hostname: slave2

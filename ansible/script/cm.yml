@@ -1,0 +1,6 @@
+---
+- hosts: cloudera_manager_cluster
+  remote_user: root
+  gather_facts: false
+  roles:
+    - role: cloudera_manager

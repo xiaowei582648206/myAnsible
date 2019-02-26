@@ -1,0 +1,47 @@
+---
+- name: create  dir to unarchive zookeeper
+  file: path={{ unarchive_path }}  state=directory owner=hadoop group=hadoop mode=0644
+
+- name: unarchive zookeeper.tar.gz 
+  unarchive: src={{ zookeeper_package_name }} dest={{ unarchive_path }}  copy=yes owner=hadoop group=hadoop mode=0644
+
+- name: copy zoo.cfg to other nodes
+  template: src=zoo_sample.cfg   dest={{ zookeeper_home }}/conf/zoo.cfg
+
+- name: create data_dir and log_dir  
+  file: path={{ item.dir }}  state=directory  owner=hadoop group=hadoop mode=0644
+  with_items:
+     - dir: "{{ data_dir }}"
+     - dir: "{{ log_dir  }}"
+
+- name: create myid file 
+  file: path={{ myid_path }}  state=touch owner=hadoop group=hadoop mode=0644 
+
+- name: insert myid_value
+  lineinfile: path={{ myid_path }}  insertafter=EOF line={{ myid_value }}
+
+- name: set zk environment variables 
+  lineinfile: path=/etc/profile  insertafter={{ item.position }}  line={{ item.value }}
+  with_items:
+     - { position: EOF  , value: "\n" }
+     - { position: EOF  , value: "export ZK_HOME={{ zookeeper_home }}" }
+     - { position: EOF  , value: "export PATH=$ZK_HOME/bin:$PATH" }
+
+- name: stop the firewall and forbidden it start automantically in centos system
+  shell: systemctl stop firewall.service && systemctl disable firewall.service
+  when: ansible_os_family == "RedHat" 
+
+- name: stop firewall in ubuntu system
+  shell: ufw disable
+  when: ansible_os_family == "Debian"
+
+
+- name: source profile and start zookeeper
+  shell: source /etc/profile && zkServer.sh start 
+
+- name: verify zookeeper is successful or not
+  shell: source /etc/profile && zkServer.sh status
+  register: zk_result
+  
+- name: print info
+  debug: msg=" this is stdout , {{ zk_result.stdout_lines }}; this is stderr , {{ zk_result.stderr_lines }}. "

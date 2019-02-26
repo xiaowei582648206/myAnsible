@@ -1,0 +1,76 @@
+---
+- name: create unarchive dir
+  file: path={{ unarchive_path }} state=directory owner=hadoop  group=hadoop mode=0644
+
+- name: unarchive hadoop tar.gz
+  unarchive: src={{ hadoop_package_name }} dest={{ unarchive_path }} copy=yes owner=hadoop group=hadoop mode=0644
+
+- name: copy configuratin xml into other nodes
+  template: src={{ item.name }} dest={{ hadoop_home }}/etc/hadoop/{{ item.value }}
+  with_items:
+    - { name: core-site.xml.j2 , value: core-site.xml }
+    - { name: hdfs-site.xml.j2 , value: hdfs-site.xml }
+    - { name: mapred-site.xml.j2 , value: mapred-site.xml }
+    - { name: yarn-site.xml.j2 , value: yarn-site.xml }
+    - { name: hadoop-env.sh.j2 , value: hadoop-env.sh }
+    - { name: slaves.j2 , value: slaves }
+
+- name: make sure the zookeeper cluster is start
+  shell: source /etc/profile && zkServer.sh status
+  register: zk_result
+  failed_when: '"follower" not in zk_result.stdout and  "leader" not in zk_result.stdout'
+
+- name: set environment variables
+  lineinfile: path=/etc/profile   insertafter={{ item.position }} line={{ item.value }} state=present
+  with_items:
+    - {position: EOF, value: "\n"}
+    - {position: EOF, value: "# Hadoop environment"}
+    - {position: EOF, value: "export HADOOP_HOME={{ hadoop_home }} "}
+    - {position: EOF, value: "export PATH=$PATH:${HADOOP_HOME}/bin:${HADOOP_HOME}/sbin"}
+
+- name: source env
+  shell: source /etc/profile 
+
+- name: start initialing hadoop ha cluster
+  debug: msg="========== start hadooop ha cluster ============" 
+
+- name: 1, start all journalnode according slaves on master
+  shell: source /etc/profile && hadoop-daemon.sh start journalnode
+  when: {{ namenode_active }} == true
+
+- name: 2, format active namenode in master 
+  shell: source /etc/profile && hdfs namenode -format
+  when:  {{ namenode_active }} == true
+
+- name: 3, start active namenode in master
+  shell: source /etc/profile &&  hadoop-daemon.sh start namenode
+  when: {{ namenode_active }} == true
+
+- name: 4, copy meta data from ative namenode to standy namenode in slave1
+  shell: source /etc/profile && hdfs namenode -bootstrapStandby
+  when: {{ namenode_standby }} == true
+
+- name: 5, format zkfc only in active namenode
+  shell: source /etc/profile && hdfs zkfc -formatZK
+  when: {{ namenode_active }} == true
+
+- name: 6, stop active namenode on master
+  shell: source /etc/profile && hadoop-daemon.sh stop namenode
+  when: {{ namenode_active }} == true
+ 
+- name: 7, stop all journalnode on master
+  shell: source /etc/profile && hadoop-daemons.sh stop journalnode
+  when: {{ namenode_active }} == true
+ 
+- name: 8, start all HDFS progress on master
+  shell: source /etc/profile && start-dfs.sh
+  when: {{ namenode_active }} == true
+
+- name: 9, start yarn cluster on master
+  shell: source /etc/profile && start-yarn.sh 
+  when: {{ rm_active }} == true
+
+- name: 10, start standby resource manager manually on standby RM node
+  shell: source /etc/profile && yarn-daemon.sh start resourcemanager
+  when: {{ rm_standby }} == true
+

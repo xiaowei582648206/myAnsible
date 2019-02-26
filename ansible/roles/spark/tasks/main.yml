@@ -1,0 +1,35 @@
+---
+- name: create unarchive dir
+  file: path={{ unarchive_path }} state=directory owner=root group=root mode=0644
+
+- name: unarchive spark tar.gz 
+  unarchive: src={{ spark_package_name }}  dest={{ unarchive_path }}  copy=yes owner=root group=root mode=0644
+
+- name: copy configuration xml into all nodes
+  template: src={{ item.name }}  dest={{ spark_home }}/conf/{{ item.value}}
+  with_items:
+      - { name: slaves.j2 , value: slaves }
+      - { name: spark-defaults.conf.j2  ,value: spark-defualts.conf }
+      - { name: spark-env.sh.j2 , value: spark-env.sh }
+
+- name: set env variables
+  lineinfile: path=/etc/profile   insertafter={{ item.pos }} line={{ item.value }} state=present
+  with_items:
+      - { pos: EOF, value: "\n" }
+      - { pos: EOF, value: "# spark environment" }
+      - { pos: EOF, value: "export SPARK_HOME={{ spark_home }}" }
+      - { pos: EOF, value: "export PATH=$PATH:${SPARK_HOME}/bin:${SPARK_HOME}/sbin" }
+
+- name: source env
+  shell: source /etc/profile
+
+- name: chmod the binaries
+  shell: source /etc/profile &&  chmod 777  {{ spark_home }}/bin/*   && chmod 777 {{ spark_home }}/sbin/*
+
+- name: start the cluster
+  shell: source /etc/profile && {{ spark_home}}/sbin/start-all.sh
+  when: " master_active == 'true' "
+  register: running_result
+
+- name: output the result
+  debug: msg= " this is stdout , {{ running_result }}; this is stderr , {{ running_result }}. "

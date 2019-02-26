@@ -1,0 +1,22 @@
+---
+- hosts: hadoop_cluster
+  remote_user: root
+  tasks:
+    - name: 获取指定的变量
+      shell: 'source /etc/profile && echo $JAVA_HOME'  
+      register: foo
+
+    - name: java version
+      shell: 'source /etc/profile && java -version'
+      register: result
+   
+    - name: print java info
+      debug: msg="the java version is {{ result }} and {{ foo }}"
+   
+    - name: test host variable
+      debug: msg="{{ myid_value}}"   
+
+    - name: 确保zookeeper服务已经启动
+      shell: source /etc/profile && zkServer.sh status
+      register: zk_result 
+      failed_when: '"follower" not in zk_result.stdout and "leader" not in zk_result.stdout'

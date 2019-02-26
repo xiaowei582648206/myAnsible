@@ -1,0 +1,10 @@
+---
+ntpServer_hostname: master
+
+
+cm_package_name: cloudera-manager-centos7-cm5.9.0_x86_64.tar.gz
+cm_version: cm-5.9.0
+cm_home: /usr/cloudera-manager/{{ cm_version}}
+cm_server_hostname: master
+mysql_server_hostname: master
+jdbc_package_name: mysql-connector-java-6.0.6.jar

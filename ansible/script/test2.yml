@@ -1,0 +1,9 @@
+---
+- hosts: cloudera_manager_cluster
+  remote_user: root
+  gather_facts: false
+  tasks:
+     - name: print some variables
+       debug: msg=" ntpserver = {{ ntpServer_enable }},  client={{ ntpClient_enable }}"
+       when: ' ntpServer_enable ==  "true" '
+
