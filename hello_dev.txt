@@ -1,0 +1,3 @@
+#使用git checkout branch_name 可以在多个分支之间来回切换
+#使用git branch可以查看所有的分支以及当前所处的分支
+#使用git branch new_branch_name 命令可以创建新的分支，每一个新创建的分支，其初始内容都是master的分支的内容一致，之后就各安天命了。
